@@ -21,9 +21,9 @@
 
 // LED Definitions
 // #define LED_NBR_OF      2
-#define PIN_LED_YELLOW     (10u)
-//#define PIN_LED_YELLOW  (11u)
-#define PIN_LED_BLUE    (11u)
+#define PIN_LED_INDX_YELLOW    (10u)
+//#define PIN_LED_INDX_YELLOW (11u)
+#define PIN_LED_INDX_BLUE   (11u)
 
 #define PIN_RELAY       (13u)
 #define PIN_GP14        (14u)
@@ -44,8 +44,8 @@
 
 typedef enum
 {
-    LED_YELLOW = 0,
-    LED_BLUE,
+    LED_INDX_YELLOW= 0,
+    LED_INDX_BLUE,
     LED_NBR_OF
 } color_et;
 

@@ -105,7 +105,7 @@ void r69_tx_task(void)
         case 20:
             rfm69_modem.radiate(r69.txbuff);
             r69.not_send_before = millis() + MIN_SEND_INTERVAL;
-            io_led_flash(LED_BLUE, BLINK_FAST, 20);
+            io_led_flash(LED_INDX_BLUE, BLINK_FAST, 20);
             r69_tx_th.state = 30;
             break;
         case 30:

@@ -18,6 +18,7 @@ Radio message:
 #include "msg.h"
 #include "r69.h"
 #include "atask.h"
+#include "alpha.h"
 
 extern msg_st msg;
 extern r69_st r69;
@@ -45,7 +46,7 @@ void clock_print_date_time(const struct tm *t)
     char buff[40];
     strftime(buff, sizeof(buff), "%Y-%m-%d %H:%M:%S (%Z)", t);
     Serial.println(buff);
-    
+ 
 }
 
 void clock_set_date_time( msg_st *msgp)

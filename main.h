@@ -1,12 +1,12 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 #include "WString.h"
-#define   __APP__ ((char*)"T2603_Picolina_Ping_RFM69")
+#define   __APP__ ((char*)"T2611_Pico_Ping_RFM69")
 
 // WiFi Access Point
-#define PIRPANA
+//#define PIRPANA
 //#define LILLA_ASTRID
-//#define VILLA_ASTRID
+#define VILLA_ASTRID
 
 #define DEBUG_PRINT 
 #define SEND_TEST_MSG 

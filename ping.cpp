@@ -17,6 +17,7 @@
 #include    "ping.h"
 #include    "r69.h"
 #include    "eeprom.h"
+#include    "alpha.h"
 
 
 #define     PING_INTERVAL_ms  (60*1000)
@@ -67,14 +68,14 @@ void ping_task(void)
         case 0:
             ping.state = 5;
             ping.wait_until = millis() + 3200;
-            io_led_flash(LED_BLUE, BLINK_JITTER_1, 40);            
-            io_led_flash(LED_YELLOW, BLINK_JITTER_2, 40);            
-            io_led_flash(LED_YELLOW, BLINK_JITTER_3, 40);
+            io_led_flash(LED_INDX_BLUE, BLINK_JITTER_1, 40);            
+            io_led_flash(LED_INDX_YELLOW, BLINK_JITTER_2, 40);            
+            io_led_flash(LED_INDX_YELLOW, BLINK_JITTER_3, 40);
             break;
         case 5:
             if(millis() > ping.wait_until) ping.state = 10;
         case 10:
-            io_led_flash(LED_YELLOW, BLINK_FAST, 50);
+            io_led_flash(LED_INDX_YELLOW, BLINK_FAST, 50);
             Serial.printf("Connecting to WiFi...%s\n", ssid);
             WiFi.begin(ssid, password);
             ping.retry_cntr = 0;
@@ -83,7 +84,7 @@ void ping_task(void)
         case 20:
             if(WiFi.status() == WL_CONNECTED)
             {
-                io_led_flash(LED_YELLOW, BLINK_1_FLASH, BLINK_FOREVER);                
+                io_led_flash(LED_INDX_YELLOW, BLINK_1_FLASH, BLINK_FOREVER);                
                 Serial.printf("WiFi is connected, Retries= %d\n",ping.retry_cntr);
                 Serial.print("IP: ");
                 Serial.println(WiFi.localIP());
@@ -103,7 +104,7 @@ void ping_task(void)
                 {
                     Serial.printf("WiFi Connection Retries was Exceeded: %d", ping.retry_cntr);
                     ping.state = 50;
-                    io_led_flash(LED_YELLOW, BLINK_SOS, BLINK_FOREVER);
+                    io_led_flash(LED_INDX_YELLOW, BLINK_SOS, BLINK_FOREVER);
                 }
                 else ping.state = 20;
             }
@@ -126,7 +127,7 @@ void ping_task(void)
             // Wait up to 10 seconds for NTP sync
             time(&ping.now);
             if(ping.now > 100000) {
-                io_led_flash(LED_BLUE, BLINK_JITTER_1, 40);
+                io_led_flash(LED_INDX_BLUE, BLINK_JITTER_1, 40);
                 ping.state = 200;
             }
             else{
@@ -168,6 +169,10 @@ void ping_task(void)
                 Serial.println(ping.buffer);    
                 Serial1.println(ping.buffer);    
                 r69_send(ping.buffer);
+
+                strftime(ping.buffer, sizeof(ping.buffer), "%H%M", &ping.timeinfo);
+                alpha_wr_4_char(ping.buffer);
+    
                 ping.state = 210;
                 ping.next_try = millis() + PING_INTERVAL_ms;
             }
@@ -180,7 +185,7 @@ void ping_task(void)
         case 300:
             ping.wait_until = millis() + 10000;
             digitalWrite(PIN_RELAY, LOW);
-            io_led_flash(LED_YELLOW, BLINK_JITTER_3, BLINK_FOREVER); 
+            io_led_flash(LED_INDX_YELLOW, BLINK_JITTER_3, BLINK_FOREVER); 
             main_data.router_restart_cntr++;
             eeprom_save_main_data();
             ping_print_main_data();

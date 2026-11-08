@@ -24,6 +24,7 @@ https://learn.sparkfun.com/tutorials/rfm69hcw-hookup-guide/all
 #include    "eeprom.h"
 #include    "comm.h"
 #include    "app.h"
+#include    "alpha.h"
 #include    "super.h"
 
 #define PIN_TX0             (0u)
@@ -48,7 +49,7 @@ void setup() {
     Serial.begin(9600);
     delay(2500);
     Serial1.begin(9600);
-
+    Serial.println(__APP__);
     Wire1.setSDA(PIN_I2C1_SDA);
     Wire1.setSCL(PIN_I2C1_SCL);
     Wire1.begin();
@@ -72,6 +73,8 @@ void setup() {
         default:
             break;
     }
+    aplha_initialize();
+
     // comm_initialize();
     // eeprom_initialize();
     // eeprom_load_main_data();

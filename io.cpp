@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
+#include <Wire.h>
 #include "atask.h"
 #include "main.h"
 #include "io.h"
@@ -26,8 +27,8 @@ io_ctrl_st io_ctrl;
 
 led_st led[LED_NBR_OF] =
 {
-    {PIN_LED_YELLOW, 0, 0, false},
-    {PIN_LED_BLUE, 0, 0, false},
+    {PIN_LED_INDX_YELLOW, 0, 0, false},
+    {PIN_LED_INDX_BLUE, 0, 0, false},
 };
 
 
@@ -78,9 +79,10 @@ void io_initialize(void)
   digitalWrite(PIN_RFM_RESET, HIGH);
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, HIGH);
-
+  Wire1.setSDA(PIN_I2C1_SDA);   // GP2 = SDA
+  Wire1.setSCL(PIN_I2C1_SDA);   // GP3 = SCL
   io_ctrl.pattern_bit = 0;
-  for (uint8_t i = LED_YELLOW; i <= LED_BLUE; i++)
+  for (uint8_t i = LED_INDX_YELLOW; i <= LED_INDX_BLUE; i++)
   {
     pinMode(led[i].pin, OUTPUT);
     digitalWrite(led[i].pin, LOW);
@@ -109,7 +111,7 @@ void io_led_flash(color_et color, blink_et bindx, uint16_t tick_nbr)
 void io_task(void)
 {
     uint32_t patt = 1UL << io_ctrl.pattern_bit;
-    for (uint8_t i = LED_YELLOW; i <= LED_BLUE; i++)
+    for (uint8_t i = LED_INDX_YELLOW; i <= LED_INDX_BLUE; i++)
     {
         if (led[i].enable){
             if ((led[i].tick_nbr > 0) || led[i].forever) {

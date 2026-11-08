@@ -92,7 +92,7 @@ void comm_task(void)
         case 10:
             tag_type = comm_read_parse();
             if(comm[COMM_INDX_0].rx_avail) {
-                io_led_flash(LED_YELLOW, BLINK_FAST, 100);
+                io_led_flash(LED_INDX_YELLOW, BLINK_FAST, 100);
                 comm_h.state = 100;
             }    
             else comm_h.state = 10;
