@@ -15,6 +15,7 @@
 #include    "io.h"
 #include    "atask.h"
 #include    "ping.h"
+#include    "clock.h"
 #include    "r69.h"
 #include    "eeprom.h"
 #include    "alpha.h"
@@ -31,7 +32,7 @@ typedef struct
     uint32_t wait_until;
     uint8_t   task_indx;
     time_t   now;
-    struct tm timeinfo;
+    // struct tm timeinfo;
     char    buffer[64];
     uint32_t next_io_tick;
 } ping_st;
@@ -43,6 +44,7 @@ const char* ssid     = WIFI_SSID;
 const char* password = WIFI_PASS;
 
 extern main_data_st     main_data;
+extern clock_st         clock_mgr;
 
 // Finnish timezone (automatic DST)
 const char* TZ_FINLAND = "EET-2EEST,M3.5.0/03,M10.5.0/04";
@@ -150,13 +152,13 @@ void ping_task(void)
             break;
         case 200:
             // Convert to local Finnish time
-            localtime_r(&ping.now, &ping.timeinfo);
+            localtime_r(&ping.now, &clock_mgr.my_time);
             Serial.println("NTP OK — Internet is working!");
-            strftime(ping.buffer, sizeof(ping.buffer), "%Y-%m-%d %H:%M:%S (%Z)", &ping.timeinfo);
+            strftime(ping.buffer, sizeof(ping.buffer), "%Y-%m-%d %H:%M:%S (%Z)", &clock_mgr.my_time);
             Serial.print("Local Finnish time: ");
             Serial.println(ping.buffer);    
             // <##T1T1=;2026;03;12;10;12>
-            strftime(ping.buffer, sizeof(ping.buffer), "<##C1T1=;%Y;%m;%d;%H;%M>", &ping.timeinfo);
+            strftime(ping.buffer, sizeof(ping.buffer), "<##C1T1=;%Y;%m;%d;%H;%M>", &clock_mgr.my_time);
             Serial.println(ping.buffer);    
             Serial1.println(ping.buffer);    
             r69_send(ping.buffer);
@@ -165,12 +167,15 @@ void ping_task(void)
             break;
         case 205:
             if(millis() > ping.next_try){
-                strftime(ping.buffer, sizeof(ping.buffer), "<T;#;PING;%Y;%m;%d;%H;%M>", &ping.timeinfo);
+                strftime(ping.buffer, sizeof(ping.buffer), "<T;#;PING;%Y;%m;%d;%H;%M;", &clock_mgr.my_time);
+                uint8_t dark_level = clock_get_dark_level();
+                size_t len = strnlen(ping.buffer,sizeof(ping.buffer));
+                sprintf(&ping.buffer[len],"D;%d>", dark_level);
                 Serial.println(ping.buffer);    
                 Serial1.println(ping.buffer);    
                 r69_send(ping.buffer);
 
-                strftime(ping.buffer, sizeof(ping.buffer), "%H%M", &ping.timeinfo);
+                strftime(ping.buffer, sizeof(ping.buffer), "%H%M", &clock_mgr.my_time);
                 alpha_wr_4_char(ping.buffer);
     
                 ping.state = 210;

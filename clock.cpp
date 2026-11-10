@@ -12,6 +12,7 @@ Radio message:
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "ping.h"
 #include "clock.h"
 #include "main.h"
 //#include "sensor.h"
@@ -23,10 +24,30 @@ Radio message:
 extern msg_st msg;
 extern r69_st r69;
 extern main_ctrl_st main_ctrl;
+// extern ping_st ping;
+
 
 void clock_task(void);
 
 clock_st clock_mgr;
+
+const uint8_t dark_time[MONTHS_PER_YEAR][24] =
+{   
+    //              0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+    [JANUARY]    = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},  
+    [FEBRUARY]   = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},
+    [MARCH]      = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},
+    [APRIL]      = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},
+    [MAY]        = {4, 4, 4, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 4},
+    [JUNE]       = {2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2},
+    [JULY]       = {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1},
+    [AUGUST]     = {4, 4, 3, 3, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 4},
+    [SEPTEMBER]  = {5, 5, 4, 3, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 5},
+    [OCTOBER]    = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},
+    [NOVEMBER]   = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},
+    [DECEMBER]   = {5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 2, 2, 2, 2, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5},
+};
+
 
 
 
@@ -47,6 +68,11 @@ void clock_print_date_time(const struct tm *t)
     strftime(buff, sizeof(buff), "%Y-%m-%d %H:%M:%S (%Z)", t);
     Serial.println(buff);
  
+}
+
+uint8_t clock_get_dark_level(void)
+{
+    return dark_time[clock_mgr.my_time.tm_mon][clock_mgr.my_time.tm_hour];
 }
 
 void clock_set_date_time( msg_st *msgp)

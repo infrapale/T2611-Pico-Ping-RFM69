@@ -25,6 +25,7 @@ https://learn.sparkfun.com/tutorials/rfm69hcw-hookup-guide/all
 #include    "comm.h"
 #include    "app.h"
 #include    "alpha.h"
+#include    "rtc.h"
 #include    "super.h"
 
 #define PIN_TX0             (0u)
@@ -32,6 +33,7 @@ https://learn.sparkfun.com/tutorials/rfm69hcw-hookup-guide/all
 
 #define IO_TICK_INTERVAL    (100)
 #define COMM_TICK_INTERVAL  (100)
+
 
 main_ctrl_st ctrl = {0};
 main_data_st main_data;
@@ -54,12 +56,20 @@ void setup() {
     Wire1.setSCL(PIN_I2C1_SCL);
     Wire1.begin();
     uint8_t key[] = RFM69_KEY;
-
-    ctrl.app_indx = APP_ARBORETUM;
+    
     atask_initialize();
+
+    #ifdef PIRPANA
+        app_initialize(APP_ARBORETUM);
+    #elifdef VILLA_ASTRID
+        app_initialize(APP_VILLA_ASTRID);
+    #elifdef LILLA_ASTRID
+        app_initialize(APP_VILLA_ASTRID);
+    #endif
+
     ping_initialize();
     // atask_add_new(&modem_handle);
-    atask_add_new(&debug_th);
+    // atask_add_new(&debug_th);
     switch((app_indx_et)ctrl.app_indx)
     {
         case APP_VILLA_ASTRID:
@@ -69,11 +79,12 @@ void setup() {
             break;
         case APP_ARBORETUM:
             r69_initialize();
+            aplha_initialize();
+            rtc_initialize();
             break;
         default:
             break;
     }
-    aplha_initialize();
 
     // comm_initialize();
     // eeprom_initialize();

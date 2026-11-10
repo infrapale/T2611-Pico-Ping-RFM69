@@ -7,6 +7,12 @@
 #include "eeprom.h"
 
 
+/*
+I2C device found at address 0x50  !
+I2C device found at address 0x68  ! RTC DS1307
+I2C device found at address 0x70  ! Quad Alpha
+*/
+
 typedef struct
 {
   uint8_t   pin;

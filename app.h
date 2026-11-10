@@ -7,6 +7,8 @@
 #define APP_MAX_TOTAL_NBR_OF_RUUVI  42
 #define APP_BUFF_LEN                80
 
+
+
 typedef enum 
 {
     APP_UNDEFINED = 0,
@@ -21,5 +23,19 @@ typedef enum
     APP_NBR_OF
 } app_indx_et;
 
+typedef struct
+{
+    char name[APP_NAME_LEN];
+} app_st;
+
+typedef struct
+{
+    app_indx_et active;
+    char        buff[APP_BUFF_LEN];
+} app_ctrl_st;
+
+void app_initialize(app_indx_et app_indx);
+
+void app_print_summary(void);
 
 #endif

@@ -2,6 +2,25 @@
 #define __CLOCK_H__
 #include "msg.h"
 
+#define MONTHS_PER_YEAR 12
+
+typedef enum
+{
+  JANUARY = 0,
+  FEBRUARY,
+  MARCH,
+  APRIL,
+  MAY,
+  JUNE,
+  JULY,
+  AUGUST,
+  SEPTEMBER,
+  OCTOBER,
+  NOVEMBER,
+  DECEMBER
+} month_et;
+
+
 typedef struct 
 {
     struct tm   my_time;
@@ -12,6 +31,8 @@ typedef struct
 } clock_st;
 
 void clock_initialize(void);
+
+uint8_t clock_get_dark_level(void);
 
 void clock_set_date_time( msg_st *msgp);
 
