@@ -4,6 +4,6 @@
 
 void aplha_initialize(void);
 
-void alpha_wr_4_char(char *buff);
+void alpha_wr_4_char(const char *buff, uint32_t fb_timeout);
 
 #endif

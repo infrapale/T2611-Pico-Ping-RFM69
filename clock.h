@@ -23,11 +23,18 @@ typedef enum
 
 typedef struct 
 {
+    struct tm   ntp_time;
+    struct tm   rtc_time;
     struct tm   my_time;
+    struct tm   *time_p;
     char        buff[64];
+    uint8_t     prev_minute;
     uint32_t    next_minute;
     uint8_t     last_hour;
+    bool        ntp_is_running;
+    bool        rtc_is_running;
     bool        new_hour_event;
+    bool        new_minute_event;
 } clock_st;
 
 void clock_initialize(void);

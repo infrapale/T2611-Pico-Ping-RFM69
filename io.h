@@ -27,7 +27,7 @@
 
 #define PIN_RELAY       (13u)
 #define PIN_GP14        (14u)
-#define PIN_GP15        (15u)
+#define PIN_PIR         (15u)
 // RFM69
 #define PIN_RFM_MISO    (16u)
 #define PIN_RFM_CS      (17u)
@@ -37,6 +37,7 @@
 #define PIN_RFM_IRQ     (21u)
 
 #define PIN_WD_ENABLE   (22u)
+#define PIN_LDR         (A0)
 
 #define BLINK_DISABLE  (9998)
 #define BLINK_FOREVER  (9999)
@@ -73,6 +74,13 @@ void io_rfm69_spi0_initialize(void);
 void io_task_initialize(void);
 
 bool io_wd_is_enabled(void);
+
+bool io_get_pir(void);
+
+uint16_t io_get_ldr(void);
+
+void io_debug(void);
+
 
 void io_led_flash(color_et color, blink_et bindx, uint16_t tick_nbr);
 

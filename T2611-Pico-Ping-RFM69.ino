@@ -27,6 +27,8 @@ https://learn.sparkfun.com/tutorials/rfm69hcw-hookup-guide/all
 #include    "alpha.h"
 #include    "rtc.h"
 #include    "super.h"
+#include    "sensor.h"
+#include    "clock.h"
 
 #define PIN_TX0             (0u)
 #define PIN_RX0             (1u)
@@ -67,9 +69,9 @@ void setup() {
         app_initialize(APP_VILLA_ASTRID);
     #endif
 
-    ping_initialize();
+    atask_add_new(&debug_th);
+    clock_initialize();
     // atask_add_new(&modem_handle);
-    // atask_add_new(&debug_th);
     switch((app_indx_et)ctrl.app_indx)
     {
         case APP_VILLA_ASTRID:
@@ -85,7 +87,9 @@ void setup() {
         default:
             break;
     }
+    ping_initialize();
 
+    sensor_initialize();
     // comm_initialize();
     // eeprom_initialize();
     // eeprom_load_main_data();
@@ -128,5 +132,7 @@ void loop1()
 void print_debug_task(void)
 {
   atask_print_status(true);
+  io_debug();
+
 }
 

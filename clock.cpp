@@ -20,10 +20,12 @@ Radio message:
 #include "r69.h"
 #include "atask.h"
 #include "alpha.h"
+#include "rtc.h"
 
 extern msg_st msg;
 extern r69_st r69;
 extern main_ctrl_st main_ctrl;
+extern ping_st ping;
 // extern ping_st ping;
 
 
@@ -96,8 +98,14 @@ void clock_set_date_time( msg_st *msgp)
         clock_print_date_time(&tmp_time);
         if (errors==0) {
             time_t t = mktime(&tmp_time);
+            // struct tm *tmp = localtime(&t);
+            clock_mgr.time_p = localtime(&t);
+            if (clock_mgr.time_p != NULL)
+            {
+                clock_mgr.my_time = *clock_mgr.time_p;
+                // memcpy(&clock_mgr.my_time, clock_mgr.time_p, sizeof(struct tm));
+            }
             //clock_print_date_time(&t);
-            clock_mgr.my_time = *localtime(&t);
             clock_print_date_time(&clock_mgr.my_time);
         }
         else Serial.println("!!!msg_time_action: Integer conversion Error");
@@ -108,17 +116,97 @@ void clock_set_date_time( msg_st *msgp)
     clock_mgr.next_minute = millis() + 60000;
 }
 
+#define CLOCK_BUFF_LEN  40
+uint32_t timeout;
+char    buff[CLOCK_BUFF_LEN];
 void clock_task(void)
 {
+
+    switch(clock_th.state)
+    {
+        case 0:
+            clock_mgr.ntp_is_running = false;
+            clock_mgr.rtc_is_running = false;
+            clock_th.state = 10;
+            timeout = millis() + 5000;
+            break;
+        case 10:
+            if(rtc_is_running()) {
+                alpha_wr_4_char("RTC!",2000);
+            }
+            if(millis() > timeout) clock_th.state = 20;
+            break;
+
+        case 20:
+            alpha_wr_4_char("NTP?",2000);            
+            clock_th.state = 30;
+            timeout = millis() + 30000;
+            break;
+        case 30:
+            if(ping_is_running()){
+                alpha_wr_4_char("NTP!",2000);
+                clock_th.state = 50;
+                clock_mgr.time_p = &clock_mgr.ntp_time;
+                timeout = millis() + 3000;
+                clock_mgr.prev_minute = 99;
+            } 
+            if(millis() > timeout) clock_th.state = 50;
+            break;
+        case 50:
+            if(millis() > timeout) clock_th.state = 100;
+            break;    
+        case 100:
+            // set time from ntp
+            clock_mgr.ntp_is_running = ping_is_running();
+            clock_mgr.rtc_is_running = rtc_is_running();
+
+            if (clock_mgr.ntp_is_running){
+                clock_mgr.my_time = clock_mgr.ntp_time;
+            } 
+            else if (clock_mgr.rtc_is_running){
+                clock_mgr.my_time = clock_mgr.rtc_time;
+            }
+
+            if(clock_mgr.ntp_is_running || clock_mgr.rtc_is_running)
+            {
+                if(clock_mgr.prev_minute != clock_mgr.my_time.tm_min )
+                {   
+                    clock_mgr.prev_minute = clock_mgr.my_time.tm_min;
+                    if(clock_mgr.ntp_is_running){
+                        strftime(buff, sizeof(buff), "%H.%M", &clock_mgr.my_time);
+                    } else {
+                        strftime(buff, sizeof(buff), "%H%M.", &clock_mgr.my_time);
+                    }
+                    alpha_wr_4_char(buff,0);
+
+                    strftime(buff, sizeof(buff), "<T;#;PING;%Y;%m;%d;%H;%M;", &clock_mgr.my_time);
+                    uint8_t dark_level = clock_get_dark_level();
+                    size_t len = strnlen(buff,sizeof(buff));
+                    sprintf(&buff[len],"D;%d>", dark_level);
+                    Serial.println(buff);    
+                    Serial1.println(buff);    
+                    r69_send(buff);
+
+                }
+            }
+            else {
+                alpha_wr_4_char("Err0",2000);
+            }
+
+            // clock_th.state = 10;
+            break;
+
+
+    }
     if (millis() > clock_mgr.next_minute)
     {
+        clock_mgr.next_minute += 6000;
         clock_mgr.my_time.tm_min += 1;
         time_t t = mktime(&clock_mgr.my_time);  // normalize (handles overflow)
         clock_mgr.my_time = *localtime(&t);     // write back normalized result
         clock_print_date_time(&clock_mgr.my_time);
 
         //clock_mgr.next_minute += 60000;
-        clock_mgr.next_minute += 6000;
     }
     if ( clock_mgr.last_hour != clock_mgr.my_time.tm_hour)
     {

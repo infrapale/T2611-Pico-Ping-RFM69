@@ -4,6 +4,17 @@
 
 RTC_DS1307 rtc;
 
+
+typedef struct 
+{
+    bool is_running;
+} rtc_ctrl_st;
+
+rtc_ctrl_st rtc_ctrl =
+{
+    .is_running = false
+}; 
+
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
 
@@ -12,10 +23,13 @@ void rtc_test(void);
 
 void rtc_initialize(void)
 {
-    if (! rtc.begin(&Wire1)) {
-      Serial.println("Couldn't find RTC");
-      Serial.flush();
-      while (1) delay(10);
+    rtc_ctrl.is_running = rtc.begin(&Wire1);
+    if (! rtc_ctrl.is_running) {
+        Serial.println("Couldn't find RTC");
+        Serial.flush();
+        //while (1) delay(10);
+    } else {
+        Serial.println("RTC is running");
     }
 
     if (! rtc.isrunning()) {
@@ -35,6 +49,23 @@ void rtc_initialize(void)
     // January 21, 2014 at 3am you would call:
     // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
     rtc_test(); 
+}
+
+bool rtc_is_running(void)
+{
+    return rtc_ctrl.is_running;
+}
+
+void rtc_copy_time( struct tm *time)
+{
+    DateTime now = rtc.now();
+
+    time->tm_year   = now.year();
+    time->tm_mon    = now.month();
+    time->tm_mday   = now.day();
+    time->tm_hour   = now.hour();
+    time->tm_min    = now.minute();
+    time->tm_sec    = now.second();
 }
 
 void rtc_test(void) 

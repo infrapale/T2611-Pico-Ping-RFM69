@@ -23,20 +23,6 @@
 
 #define     PING_INTERVAL_ms  (60*1000)
 
-typedef struct
-{
-    uint16_t state;
-    uint16_t prev_state;
-    uint16_t retry_cntr;
-    uint32_t next_try;
-    uint32_t wait_until;
-    uint8_t   task_indx;
-    time_t   now;
-    // struct tm timeinfo;
-    char    buffer[64];
-    uint32_t next_io_tick;
-} ping_st;
-
 
 ping_st ping = {0};
 
@@ -57,7 +43,15 @@ atask_st ping_th              =   {"Ping Task      ", 100,     0,     0,  255,  
 void ping_initialize(void)
 {
     ping.task_indx =  atask_add_new(&ping_th);
+    ping.is_running = false;
 }
+
+bool ping_is_running(void)
+{
+    return ping.is_running;
+}
+
+
 
 void ping_task(void)
 {
@@ -69,6 +63,7 @@ void ping_task(void)
     {
         case 0:
             ping.state = 5;
+            ping.is_running = false;
             ping.wait_until = millis() + 3200;
             io_led_flash(LED_INDX_BLUE, BLINK_JITTER_1, 40);            
             io_led_flash(LED_INDX_YELLOW, BLINK_JITTER_2, 40);            
@@ -134,6 +129,7 @@ void ping_task(void)
             }
             else{
                 ping.wait_until = millis() + 100;
+                ping.is_running = false;
                 ping.state = 112;
             }
             break;
@@ -152,31 +148,30 @@ void ping_task(void)
             break;
         case 200:
             // Convert to local Finnish time
-            localtime_r(&ping.now, &clock_mgr.my_time);
+            ping.is_running = true;
+            localtime_r(&ping.now, &clock_mgr.ntp_time);
             Serial.println("NTP OK — Internet is working!");
-            strftime(ping.buffer, sizeof(ping.buffer), "%Y-%m-%d %H:%M:%S (%Z)", &clock_mgr.my_time);
+            strftime(ping.buffer, sizeof(ping.buffer), "%Y-%m-%d %H:%M:%S (%Z)", &clock_mgr.ntp_time);
             Serial.print("Local Finnish time: ");
             Serial.println(ping.buffer);    
             // <##T1T1=;2026;03;12;10;12>
-            strftime(ping.buffer, sizeof(ping.buffer), "<##C1T1=;%Y;%m;%d;%H;%M>", &clock_mgr.my_time);
-            Serial.println(ping.buffer);    
-            Serial1.println(ping.buffer);    
-            r69_send(ping.buffer);
+            // strftime(ping.buffer, sizeof(ping.buffer), "<##C1T1=;%Y;%m;%d;%H;%M>", &clock_mgr.ntp_time);
+            // Serial.println(ping.buffer);    
+            // Serial1.println(ping.buffer);    
+            // r69_send(ping.buffer);
             ping.state = 205;
             ping.next_try = millis() + 5000;
             break;
         case 205:
             if(millis() > ping.next_try){
-                strftime(ping.buffer, sizeof(ping.buffer), "<T;#;PING;%Y;%m;%d;%H;%M;", &clock_mgr.my_time);
-                uint8_t dark_level = clock_get_dark_level();
-                size_t len = strnlen(ping.buffer,sizeof(ping.buffer));
-                sprintf(&ping.buffer[len],"D;%d>", dark_level);
-                Serial.println(ping.buffer);    
-                Serial1.println(ping.buffer);    
-                r69_send(ping.buffer);
+                // strftime(ping.buffer, sizeof(ping.buffer), "<T;#;PING;%Y;%m;%d;%H;%M;", &clock_mgr.ntp_time);
+                // uint8_t dark_level = clock_get_dark_level();
+                // size_t len = strnlen(ping.buffer,sizeof(ping.buffer));
+                // sprintf(&ping.buffer[len],"D;%d>", dark_level);
+                // Serial.println(ping.buffer);    
+                // Serial1.println(ping.buffer);    
+                // r69_send(ping.buffer);
 
-                strftime(ping.buffer, sizeof(ping.buffer), "%H%M", &clock_mgr.my_time);
-                alpha_wr_4_char(ping.buffer);
     
                 ping.state = 210;
                 ping.next_try = millis() + PING_INTERVAL_ms;

@@ -82,6 +82,7 @@ void io_initialize(void)
   //RFM95 Reset
   pinMode(PIN_RFM_RESET, OUTPUT);
   pinMode(PIN_WD_ENABLE, INPUT_PULLUP);
+  pinMode(PIN_PIR, INPUT);
   digitalWrite(PIN_RFM_RESET, HIGH);
   pinMode(PIN_RELAY, OUTPUT);
   digitalWrite(PIN_RELAY, HIGH);
@@ -101,6 +102,15 @@ void io_task_initialize(void)
 
 bool io_wd_is_enabled(void) {
   return (digitalRead(PIN_WD_ENABLE) == HIGH);
+}
+
+bool io_get_pir(void) {
+  return (digitalRead(PIN_PIR) == HIGH);
+}
+
+uint16_t io_get_ldr(void)
+{
+    return analogRead(PIN_LDR);
 }
 
 
@@ -133,4 +143,10 @@ void io_task(void)
         }
     } 
     if (++io_ctrl.pattern_bit >= 32) io_ctrl.pattern_bit = 0;
+}
+
+void io_debug(void)
+{
+    Serial.printf("PIR = %d  ", io_get_pir());
+    Serial.printf("LDR = %d\n", io_get_ldr());
 }
