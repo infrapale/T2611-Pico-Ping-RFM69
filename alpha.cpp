@@ -114,7 +114,9 @@ void alpha_wr_4_char(const char *buff, uint32_t fb_timeout)
 // }
 uint8_t alpha_map_brightness(uint16_t val)
 {
-    return (uint8_t) map(val,200,3000,15,0);
+    if (val > 2800) return 0;
+    else if (val < 300) return 15;
+    else  return (uint8_t) map(val,300,2800,15,0);
 }
 
 uint16_t ldr;
